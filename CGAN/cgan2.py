@@ -15,6 +15,7 @@ import torch.nn.functional as F
 import torch
 
 os.makedirs('images', exist_ok=True)
+os.makedirs('orig_images', exist_ok=True)
 
 channels = 1
 img_size = 28
@@ -24,7 +25,8 @@ batch_size = 32
 learning_rate = .0002
 b1 = .5
 b2 = .999
-sample_interval = 512
+sample_interval = 5000
+orig_images_sampling_rate = 500
 n_epochs = 200
 img_shape = (channels, img_size, img_size)
 
@@ -110,7 +112,7 @@ def sample_image(n_row, batches_done):
     # Sample noise
     z = Variable(FloatTensor(np.random.normal(0, 1, (n_row**2, latent_dim))))
     # Get labels ranging from 0 to n_classes for n rows
-    labels = np.array([num for _ in range(n_row) for num in range(n_row)])
+    labels = np.array([1 for _ in range(n_row) for num in range(n_row)])
     labels = Variable(LongTensor(labels))
     gen_imgs = generator(z, labels)
     save_image(gen_imgs.data, 'images/%d.png' % batches_done, nrow=n_row, normalize=True)
@@ -139,13 +141,19 @@ class QuickDrawDataset(Dataset):
         return image, 1
 
 data = QuickDrawDataset(label='apple', transform=transforms.Compose([
-                        transforms.Resize(32),
+                        transforms.Resize(img_size),
                         transforms.ToTensor(),
                         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]))
-dataloader = DataLoader(data, batch_size=32, shuffle=False)
+dataloader = DataLoader(data, batch_size=batch_size, shuffle=False)
 
 for epoch in range(n_epochs):
     for i, (imgs, labels) in enumerate(dataloader):
+        if epoch == 0 and i % orig_images_sampling_rate == 0:
+            #### save the first images
+            orig_img = imgs.type(FloatTensor)
+            orig_img = orig_img.view(orig_img.size(0),*img_shape)
+            save_image(orig_img.data, 'orig_images/%d.png' % i, nrow=batch_size//8, normalize=True)
+
         batch_size = len(imgs)
 
         # Adversarial ground truths
@@ -164,8 +172,8 @@ for epoch in range(n_epochs):
 
         # Sample noise and labels as generator input
         z = Variable(FloatTensor(np.random.normal(0, 1, (batch_size, latent_dim))))
-        gen_labels = Variable(LongTensor(np.random.randint(0, 1, batch_size)))
-
+        #gen_labels = Variable(LongTensor(np.random.randint(0, 1, batch_size)))
+        gen_labels = Variable(LongTensor(np.array([1]*batch_size)))
         # Generate a batch of images
         gen_imgs = generator(z, gen_labels)
 
@@ -196,9 +204,9 @@ for epoch in range(n_epochs):
         d_loss.backward()
         optimizer_D.step()
 
-        print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, 1, i, len(dataloader),
+        print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, n_epochs, i, len(dataloader),
                                                             d_loss.item(), g_loss.item()))
 
         batches_done = epoch * len(dataloader) + i
         if batches_done % sample_interval == 0:
-             sample_image(n_row=10, batches_done=batches_done)
+             sample_image(n_row=5, batches_done=batches_done)

@@ -145,7 +145,6 @@ data = QuickDrawDataset(label='apple', transform=transforms.Compose([
                         transforms.ToTensor(),
                         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]))
 dataloader = DataLoader(data, batch_size=batch_size, shuffle=False)
-
 for epoch in range(n_epochs):
     for i, (imgs, labels) in enumerate(dataloader):
         if epoch == 0 and i % orig_images_sampling_rate == 0:

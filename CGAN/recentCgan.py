@@ -163,7 +163,7 @@ for epoch in range(n_epochs):
         real_imgs = Variable(imgs.type(FloatTensor)) # 32x794
         labels = Variable(labels.type(LongTensor))
 
-#         # -----------------
+# -----------------
 #         #  Train Generator
 #         # -----------------
 
@@ -190,7 +190,7 @@ for epoch in range(n_epochs):
         optimizer_D.zero_grad()
 
         # Loss for real images
-        validity_real = discriminator(real_imgs, labels)
+        validity_real = discriminator(real_imgs, gen_labels)
         d_real_loss = adversarial_loss(validity_real, valid)
 
         # Loss for fake images

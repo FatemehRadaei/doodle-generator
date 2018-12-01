@@ -27,7 +27,17 @@ img_w = img_h = img_size
 img_shape = (img_size, img_size, channels)
 n_epochs = 1000
 #latent_dim = 100
-classes = ['piano','bee', 'apple']
+classes = ['saxophone',
+    'raccoon',
+    'piano',
+    'panda',
+    'leg',
+    'headphones',
+    'ceiling_fan',
+    'bed',
+    'basket',
+    'aircraft_carrier']
+#['piano','bee', 'apple']
 num_classes = len(classes)
 
 def discriminator_builder(depth=64,p=0.4):
